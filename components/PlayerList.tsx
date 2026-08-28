@@ -8,21 +8,23 @@ interface Player {
 
 export default function PlayerList({ players }: { players: Player[] }) {
   return (
-    <ul className="flex w-72 flex-col gap-2">
+    <ul className="flex w-full flex-col gap-2">
       {players.map((p) => (
         <li
           key={p.id}
-          className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-sm"
-          style={{
-            backgroundColor: `${p.color}18`,
-            opacity: p.connected ? 1 : 0.4,
-          }}
+          className="flex items-center justify-between rounded-xl bg-panelDark px-3 py-2.5"
+          style={{ opacity: p.connected ? 1 : 0.4 }}
         >
-          <span className="flex items-center gap-2 font-medium text-white">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-            {p.name}
+          <span className="flex items-center gap-3">
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-panelDark"
+              style={{ backgroundColor: p.color }}
+            >
+              {p.name.charAt(0).toUpperCase()}
+            </span>
+            <span className="font-medium">{p.name}</span>
           </span>
-          <span className="text-xs text-white/50">
+          <span className="text-xs text-muted">
             {p.isHost ? 'Host' : ''} {!p.connected && '· offline'}
           </span>
         </li>
