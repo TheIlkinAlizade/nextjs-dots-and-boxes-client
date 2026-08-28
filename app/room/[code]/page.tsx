@@ -9,8 +9,10 @@ import GamePanel from '@/components/GamePanel';
 interface Player {
   id: string;
   name: string;
+  color: string;
   connected: boolean;
   isHost: boolean;
+  score: number;
 }
 
 interface GameState {
@@ -88,12 +90,58 @@ export default function RoomPage() {
       setStatus('playing');
       setGame(game);
     }
+    function onMoveMade(payload: {
+      line: { row: number; col: number; orientation: 'horizontal' | 'vertical' };
+      completedBoxes: { row: number; col: number; ownerId: string }[];
+      currentTurnIndex: number;
+      boxesFilled: number;
+      scores: { id: string; score: number }[];
+    }) {
+      setGame((prev) => {
+        if (!prev) return prev;
+        const key = `${payload.line.row}-${payload.line.col}`;
+        const horizontalLines =
+          payload.line.orientation === 'horizontal'
+            ? [...prev.horizontalLines, key]
+            : prev.horizontalLines;
+        const verticalLines =
+          payload.line.orientation === 'vertical'
+            ? [...prev.verticalLines, key]
+            : prev.verticalLines;
+
+        const boxOwners = prev.boxOwners.map((r) => [...r]);
+        for (const box of payload.completedBoxes) {
+          boxOwners[box.row][box.col] = box.ownerId;
+        }
+
+        return {
+          ...prev,
+          horizontalLines,
+          verticalLines,
+          boxOwners,
+          currentTurnIndex: payload.currentTurnIndex,
+          boxesFilled: payload.boxesFilled,
+        };
+      });
+
+      setPlayers((prev) =>
+        prev.map((p) => {
+          const scoreEntry = payload.scores.find((s) => s.id === p.id);
+          return scoreEntry ? { ...p, score: scoreEntry.score } : p;
+        })
+      );
+    }
+    function onGameOver() {
+      setStatus('finished');
+    }
 
     socket.on('player_joined', onPlayerJoined);
     socket.on('player_reconnected', onPlayerReconnected);
     socket.on('player_disconnected', onPlayerDisconnected);
     socket.on('player_left', onPlayerLeft);
     socket.on('game_started', onGameStarted);
+    socket.on('move_made', onMoveMade);
+    socket.on('game_over', onGameOver);
 
     return () => {
       socket.off('player_joined', onPlayerJoined);
@@ -101,6 +149,8 @@ export default function RoomPage() {
       socket.off('player_disconnected', onPlayerDisconnected);
       socket.off('player_left', onPlayerLeft);
       socket.off('game_started', onGameStarted);
+      socket.off('move_made', onMoveMade);
+      socket.off('game_over', onGameOver);
     };
   }, [roomCode, router]);
 
@@ -117,26 +167,36 @@ export default function RoomPage() {
     });
   }
 
+  function handleLineClick(row: number, col: number, orientation: 'horizontal' | 'vertical') {
+    socket.emit('make_move', { line: { row, col, orientation } }, (res: { ok: boolean; error?: string }) => {
+      if (!res.ok) console.log('Move rejected:', res.error);
+    });
+  }
+
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-red-500">{error}</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#0B0A1F] text-white">
+        <p className="text-red-400">{error}</p>
       </main>
     );
   }
 
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
+  const winner =
+    status === 'finished'
+      ? [...players].sort((a, b) => b.score - a.score)[0]
+      : null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-      <h1 className="text-2xl font-bold">Room {roomCode}</h1>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0B0A1F] p-6 text-white">
+      <h1 className="text-3xl font-bold tracking-tight">Room {roomCode}</h1>
 
       {status === 'lobby' && (
         <>
           <PlayerList players={players} />
           {isHost && (
             <button
-              className="bg-blue-500 text-white rounded px-4 py-2 w-64 disabled:opacity-50"
+              className="rounded-full bg-[#FF5D8F] px-6 py-3 font-semibold text-white shadow-lg transition-opacity disabled:opacity-40"
               onClick={handleStartGame}
               disabled={players.filter((p) => p.connected).length < 2}
             >
@@ -146,9 +206,20 @@ export default function RoomPage() {
         </>
       )}
 
-      {status === 'playing' && game && <GamePanel game={game} />}
+      {(status === 'playing' || status === 'finished') && game && (
+        <GamePanel game={game} players={players} myPlayerId={myPlayerId} onLineClick={handleLineClick} />
+      )}
 
-      <button className="bg-gray-300 rounded px-4 py-2 w-64" onClick={handleLeaveRoom}>
+      {status === 'finished' && winner && (
+        <p className="text-xl font-semibold" style={{ color: winner.color }}>
+          {winner.name} wins!
+        </p>
+      )}
+
+      <button
+        className="rounded-full border border-white/20 px-6 py-2 text-sm text-white/70 transition-colors hover:bg-white/10"
+        onClick={handleLeaveRoom}
+      >
         Leave Room
       </button>
     </main>

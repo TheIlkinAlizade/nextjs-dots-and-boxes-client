@@ -1,23 +1,29 @@
 interface Player {
   id: string;
   name: string;
+  color: string;
   connected: boolean;
   isHost: boolean;
 }
 
 export default function PlayerList({ players }: { players: Player[] }) {
   return (
-    <ul className="flex flex-col gap-2 w-64">
+    <ul className="flex w-72 flex-col gap-2">
       {players.map((p) => (
         <li
           key={p.id}
-          className={`flex justify-between border rounded px-3 py-2 ${
-            p.connected ? '' : 'opacity-40'
-          }`}
+          className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-sm"
+          style={{
+            backgroundColor: `${p.color}18`,
+            opacity: p.connected ? 1 : 0.4,
+          }}
         >
-          <span>{p.name}</span>
-          <span className="text-sm text-gray-500">
-            {p.isHost && 'Host'} {!p.connected && '(disconnected)'}
+          <span className="flex items-center gap-2 font-medium text-white">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+            {p.name}
+          </span>
+          <span className="text-xs text-white/50">
+            {p.isHost ? 'Host' : ''} {!p.connected && '· offline'}
           </span>
         </li>
       ))}
