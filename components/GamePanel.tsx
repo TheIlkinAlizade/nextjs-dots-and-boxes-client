@@ -5,6 +5,7 @@ interface Player {
   isHost: boolean;
   connected: boolean;
   score: number;
+  resigned: boolean;
 }
 
 interface GameState {
@@ -23,6 +24,7 @@ interface GamePanelProps {
   game: GameState;
   players: Player[];
   myPlayerId: string | null;
+  gameOver: boolean;
   onLineClick: (row: number, col: number, orientation: 'horizontal' | 'vertical') => void;
 }
 
@@ -31,26 +33,21 @@ const DOT_RADIUS = 5;
 const LINE_HIT_WIDTH = 16;
 const LINE_VISIBLE_WIDTH = 6;
 
-export default function GamePanel({ game, players, myPlayerId, onLineClick }: GamePanelProps) {
+export default function GamePanel({ game, players, myPlayerId, gameOver, onLineClick }: GamePanelProps) {
   const playerById = new Map(players.map((p) => [p.id, p]));
   const currentPlayerId = game.turnOrder[game.currentTurnIndex];
   const currentPlayer = playerById.get(currentPlayerId);
   const isMyTurn = currentPlayerId === myPlayerId;
-  const gameOver = game.boxesFilled === game.totalBoxes;
 
   const width = game.gridWidth * CELL;
   const height = game.gridHeight * CELL;
-
   const elements: React.ReactNode[] = [];
 
   for (let row = 0; row <= game.gridHeight; row++) {
     for (let col = 0; col < game.gridWidth; col++) {
       const key = `${row}-${col}`;
       const drawnBy = game.horizontalLines[key];
-      const x1 = col * CELL;
-      const x2 = (col + 1) * CELL;
-      const y = row * CELL;
-
+      const x1 = col * CELL, x2 = (col + 1) * CELL, y = row * CELL;
       elements.push(
         <line key={`h-visible-${key}`} x1={x1} y1={y} x2={x2} y2={y}
           stroke={drawnBy ? playerById.get(drawnBy)?.color ?? '#81B64C' : 'transparent'}
@@ -71,10 +68,7 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
     for (let col = 0; col <= game.gridWidth; col++) {
       const key = `${row}-${col}`;
       const drawnBy = game.verticalLines[key];
-      const x = col * CELL;
-      const y1 = row * CELL;
-      const y2 = (row + 1) * CELL;
-
+      const x = col * CELL, y1 = row * CELL, y2 = (row + 1) * CELL;
       elements.push(
         <line key={`v-visible-${key}`} x1={x} y1={y1} x2={x} y2={y2}
           stroke={drawnBy ? playerById.get(drawnBy)?.color ?? '#81B64C' : 'transparent'}
@@ -107,9 +101,7 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
 
   for (let row = 0; row <= game.gridHeight; row++) {
     for (let col = 0; col <= game.gridWidth; col++) {
-      elements.push(
-        <circle key={`dot-${row}-${col}`} cx={col * CELL} cy={row * CELL} r={DOT_RADIUS} fill="#EEEED2" />
-      );
+      elements.push(<circle key={`dot-${row}-${col}`} cx={col * CELL} cy={row * CELL} r={DOT_RADIUS} fill="#EEEED2" />);
     }
   }
 
@@ -121,15 +113,16 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
           {isMyTurn ? 'Your turn' : `${currentPlayer?.name ?? '...'}'s turn`}
         </div>
       )}
-
-      <svg
-        width={width + LINE_VISIBLE_WIDTH}
-        height={height + LINE_VISIBLE_WIDTH}
-        viewBox={`${-LINE_VISIBLE_WIDTH / 2} ${-LINE_VISIBLE_WIDTH / 2} ${width + LINE_VISIBLE_WIDTH} ${height + LINE_VISIBLE_WIDTH}`}
-        className="bg-panelDark shadow-lg"
-      >
-        {elements}
-      </svg>
+      <div className="w-full overflow-x-auto">
+        <svg
+          width={width + LINE_VISIBLE_WIDTH}
+          height={height + LINE_VISIBLE_WIDTH}
+          viewBox={`${-LINE_VISIBLE_WIDTH / 2} ${-LINE_VISIBLE_WIDTH / 2} ${width + LINE_VISIBLE_WIDTH} ${height + LINE_VISIBLE_WIDTH}`}
+          className="mx-auto bg-panelDark shadow-lg"
+        >
+          {elements}
+        </svg>
+      </div>
     </div>
   );
 }

@@ -238,14 +238,14 @@ export default function RoomPage() {
       <div className="flex w-full max-w-5xl flex-col gap-4 md:flex-row">
         <div className="flex flex-1 flex-col items-center gap-4">
           <div className="flex w-full items-center justify-between">
-            <h1 className="font-display text-xl font-bold tracking-tight">Room {roomCode}</h1>
+            <h1 className="font-display text-xl font-bold text-black">Room: {roomCode}</h1>
             <button className="rounded-md bg-panel px-3 py-1.5 text-xs font-semibold text-muted hover:text-white" onClick={copyCode}>
               {copied ? 'Copied!' : 'Copy code'}
             </button>
           </div>
 
           {(status === 'playing' || status === 'finished') && game ? (
-            <GamePanel game={game} players={players} myPlayerId={myPlayerId} onLineClick={handleLineClick} />
+            <GamePanel game={game} players={players} myPlayerId={myPlayerId} gameOver={status === 'finished'} onLineClick={handleLineClick} />
           ) : (
             <div className="flex aspect-square w-full max-w-md items-center justify-center bg-panelDark text-sm text-muted">
               Waiting for the host to start the game…
