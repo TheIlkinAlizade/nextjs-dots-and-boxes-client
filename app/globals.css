@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-stripe-rgb: 129 182 76;
+}
+
 @keyframes drift {
-  from { background-position: 0 0; }
-  to { background-position: 240px 240px; }
+  from { transform: translate(0, 0); }
+  to { transform: translate(-52px, -52px); }
 }

@@ -10,8 +10,8 @@ interface Player {
 interface GameState {
   gridWidth: number;
   gridHeight: number;
-  horizontalLines: string[];
-  verticalLines: string[];
+  horizontalLines: Record<string, string>;
+  verticalLines: Record<string, string>;
   boxOwners: (string | null)[][];
   turnOrder: string[];
   currentTurnIndex: number;
@@ -41,24 +41,22 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
   const width = game.gridWidth * CELL;
   const height = game.gridHeight * CELL;
 
-  const horizontalSet = new Set(game.horizontalLines);
-  const verticalSet = new Set(game.verticalLines);
-
   const elements: React.ReactNode[] = [];
 
   for (let row = 0; row <= game.gridHeight; row++) {
     for (let col = 0; col < game.gridWidth; col++) {
       const key = `${row}-${col}`;
-      const drawn = horizontalSet.has(key);
+      const drawnBy = game.horizontalLines[key];
       const x1 = col * CELL;
       const x2 = (col + 1) * CELL;
       const y = row * CELL;
 
       elements.push(
         <line key={`h-visible-${key}`} x1={x1} y1={y} x2={x2} y2={y}
-          stroke={drawn ? '#81B64C' : 'transparent'} strokeWidth={LINE_VISIBLE_WIDTH} strokeLinecap="round" />
+          stroke={drawnBy ? playerById.get(drawnBy)?.color ?? '#81B64C' : 'transparent'}
+          strokeWidth={LINE_VISIBLE_WIDTH} strokeLinecap="round" />
       );
-      if (!drawn && !gameOver) {
+      if (!drawnBy && !gameOver) {
         elements.push(
           <line key={`h-hit-${key}`} x1={x1} y1={y} x2={x2} y2={y}
             stroke="transparent" strokeWidth={LINE_HIT_WIDTH}
@@ -72,16 +70,17 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
   for (let row = 0; row < game.gridHeight; row++) {
     for (let col = 0; col <= game.gridWidth; col++) {
       const key = `${row}-${col}`;
-      const drawn = verticalSet.has(key);
+      const drawnBy = game.verticalLines[key];
       const x = col * CELL;
       const y1 = row * CELL;
       const y2 = (row + 1) * CELL;
 
       elements.push(
         <line key={`v-visible-${key}`} x1={x} y1={y1} x2={x} y2={y2}
-          stroke={drawn ? '#81B64C' : 'transparent'} strokeWidth={LINE_VISIBLE_WIDTH} strokeLinecap="round" />
+          stroke={drawnBy ? playerById.get(drawnBy)?.color ?? '#81B64C' : 'transparent'}
+          strokeWidth={LINE_VISIBLE_WIDTH} strokeLinecap="round" />
       );
-      if (!drawn && !gameOver) {
+      if (!drawnBy && !gameOver) {
         elements.push(
           <line key={`v-hit-${key}`} x1={x} y1={y1} x2={x} y2={y2}
             stroke="transparent" strokeWidth={LINE_HIT_WIDTH}
@@ -100,8 +99,8 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
       elements.push(
         <rect key={`box-${row}-${col}`}
           x={col * CELL + LINE_VISIBLE_WIDTH / 2} y={row * CELL + LINE_VISIBLE_WIDTH / 2}
-          width={CELL - LINE_VISIBLE_WIDTH} height={CELL - LINE_VISIBLE_WIDTH} rx={6}
-          fill={owner?.color ?? '#333'} fillOpacity={0.32} />
+          width={CELL - LINE_VISIBLE_WIDTH} height={CELL - LINE_VISIBLE_WIDTH}
+          fill={owner?.color ?? '#333'} fillOpacity={0.35} />
       );
     }
   }
@@ -115,10 +114,10 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
   }
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center gap-3">
       {!gameOver && (
-        <div className="flex items-center gap-2 rounded-full bg-panel px-5 py-2 font-semibold shadow-md ring-1 ring-white/5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: currentPlayer?.color ?? '#666' }} />
+        <div className="flex w-full items-center gap-2 bg-panel px-4 py-2.5 text-sm font-semibold">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: currentPlayer?.color ?? '#666' }} />
           {isMyTurn ? 'Your turn' : `${currentPlayer?.name ?? '...'}'s turn`}
         </div>
       )}
@@ -127,26 +126,10 @@ export default function GamePanel({ game, players, myPlayerId, onLineClick }: Ga
         width={width + LINE_VISIBLE_WIDTH}
         height={height + LINE_VISIBLE_WIDTH}
         viewBox={`${-LINE_VISIBLE_WIDTH / 2} ${-LINE_VISIBLE_WIDTH / 2} ${width + LINE_VISIBLE_WIDTH} ${height + LINE_VISIBLE_WIDTH}`}
-        className="rounded-2xl bg-panelDark shadow-xl ring-1 ring-white/5"
+        className="bg-panelDark shadow-lg"
       >
         {elements}
       </svg>
-
-      <div className="flex flex-wrap justify-center gap-2">
-        {players.map((p) => (
-          <div
-            key={p.id}
-            className="flex items-center gap-2 rounded-full bg-panel px-3 py-1.5 text-sm font-semibold"
-            style={{ opacity: p.connected ? 1 : 0.4 }}
-          >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-panelDark" style={{ backgroundColor: p.color }}>
-              {p.name.charAt(0).toUpperCase()}
-            </span>
-            <span style={{ color: p.color }}>{p.name}</span>
-            <span className="text-white/70">{p.score}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

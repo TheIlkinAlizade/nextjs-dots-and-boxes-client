@@ -1,26 +1,26 @@
 const SIZES = [
-  { label: 'Small', width: 4, height: 4 },
-  { label: 'Medium', width: 5, height: 5 },
-  { label: 'Large', width: 7, height: 7 },
+  { label: 'Small', gridWidth: 4, gridHeight: 4 },
+  { label: 'Medium', gridWidth: 5, gridHeight: 5 },
+  { label: 'Large', gridWidth: 7, gridHeight: 7 },
 ];
 
 interface GridSizeSelectorProps {
-  selected: { width: number; height: number };
-  onSelect: (size: { width: number; height: number }) => void;
+  selected: { gridWidth: number; gridHeight: number };
+  onSelect: (size: { gridWidth: number; gridHeight: number }) => void;
 }
 
 export default function GridSizeSelector({ selected, onSelect }: GridSizeSelectorProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1.5">
       {SIZES.map((size) => {
-        const active = selected.width === size.width && selected.height === size.height;
+        const active = selected.gridWidth === size.gridWidth && selected.gridHeight === size.gridHeight;
         return (
           <button
             key={size.label}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
-              active ? 'bg-accent text-panelDark' : 'bg-panelDark text-muted hover:text-white'
+            className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+              active ? 'bg-accent text-panelDark' : 'bg-base text-muted hover:text-white'
             }`}
-            onClick={() => onSelect({ width: size.width, height: size.height })}
+            onClick={() => onSelect({ gridWidth: size.gridWidth, gridHeight: size.gridHeight })}
           >
             {size.label}
           </button>
