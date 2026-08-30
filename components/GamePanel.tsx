@@ -41,6 +41,9 @@ export default function GamePanel({ game, players, myPlayerId, gameOver, onLineC
 
   const width = game.gridWidth * CELL;
   const height = game.gridHeight * CELL;
+  const viewWidth = width + LINE_VISIBLE_WIDTH;
+  const viewHeight = height + LINE_VISIBLE_WIDTH;
+
   const elements: React.ReactNode[] = [];
 
   for (let row = 0; row <= game.gridHeight; row++) {
@@ -106,23 +109,21 @@ export default function GamePanel({ game, players, myPlayerId, gameOver, onLineC
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex w-full flex-col items-center gap-3">
       {!gameOver && (
-        <div className="flex w-full items-center gap-2 bg-panel px-4 py-2.5 text-sm font-semibold">
+        <div className="flex w-full max-w-[520px] items-center gap-2 bg-panel px-4 py-2.5 text-sm font-semibold">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: currentPlayer?.color ?? '#666' }} />
           {isMyTurn ? 'Your turn' : `${currentPlayer?.name ?? '...'}'s turn`}
         </div>
       )}
-      <div className="w-full overflow-x-auto">
-        <svg
-          width={width + LINE_VISIBLE_WIDTH}
-          height={height + LINE_VISIBLE_WIDTH}
-          viewBox={`${-LINE_VISIBLE_WIDTH / 2} ${-LINE_VISIBLE_WIDTH / 2} ${width + LINE_VISIBLE_WIDTH} ${height + LINE_VISIBLE_WIDTH}`}
-          className="mx-auto bg-panelDark shadow-lg"
-        >
-          {elements}
-        </svg>
-      </div>
+
+      <svg
+        viewBox={`${-LINE_VISIBLE_WIDTH / 2} ${-LINE_VISIBLE_WIDTH / 2} ${viewWidth} ${viewHeight}`}
+        style={{ aspectRatio: `${viewWidth} / ${viewHeight}` }}
+        className="w-full max-w-[520px] bg-panelDark shadow-lg"
+      >
+        {elements}
+      </svg>
     </div>
   );
 }
