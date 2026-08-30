@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dots and Boxes — Client
 
-## Getting Started
+Next.js frontend for a real-time multiplayer Dots and Boxes game. Talks to the backend entirely over Socket.io, no REST.
 
-First, run the development server:
+**Backend:** [socketio-dots-and-boxes-server](https://github.com/TheIlkinAlizade/socketio-dots-and-boxes-server)
+
+---
+
+## What it does
+
+- Enter a name, create a room or join via code/link — no accounts
+- Opening a shared link cold prompts for a name inline instead of redirecting home
+- Live lobby: player list, host-only grid size + kick, host starts the game
+- Clickable SVG board, lines/boxes colored per player
+- Resign, live scores, rematch flow back to a fresh lobby
+- Refresh reconnects into the running game via a `sessionStorage` player ID instead of dropping you
+
+## Stack
+
+- Next.js (App Router), TypeScript
+- Tailwind CSS
+- socket.io-client
+- React state only, no external store, no database
+- Docker, multi-stage build, `standalone` output
+
+## Setup
 
 ```bash
+git clone https://github.com/TheIlkinAlizade/nextjs-dots-and-boxes-client.git
+cd nextjs-dots-and-boxes-client
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Runs on `http://localhost:3000`. Needs the [backend](https://github.com/TheIlkinAlizade/socketio-dots-and-boxes-server) running.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`NEXT_PUBLIC_SERVER_URL` gets inlined into the JS bundle at build time, so it's a build arg, not a runtime env var:
 
-## Learn More
+```bash
+docker build --build-arg NEXT_PUBLIC_SERVER_URL=http://localhost:4000 -t dots-and-boxes-client .
+docker run -p 3000:3000 dots-and-boxes-client
+```
 
-To learn more about Next.js, take a look at the following resources:
+Changing the backend URL later means rebuilding the image.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SERVER_URL` | URL of the Socket.io backend |
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [`.env.example`](./.env.example).
